@@ -66,7 +66,7 @@ class Envs(object):
         if isinstance( action, six.integer_types ):
             nice_action = action
         else:
-            nice_action = np.array(action)
+            nice_action = np.array([action])
         if render:
             env.render()
         [observation, reward, done, info] = env.step(nice_action)
@@ -117,8 +117,8 @@ class Envs(object):
             # Many newer JSON parsers allow it, but many don't. Notably python json
             # module can read and write such floats. So we only here fix "export version",
             # also make it flat.
-            info['low']  = [(x if x != -np.inf else -1e100) for x in np.array(space.low ).flatten()]
-            info['high'] = [(x if x != +np.inf else +1e100) for x in np.array(space.high).flatten()]
+            info['low']  = [(x.item() if x != -np.inf else -1e100) for x in np.array(space.low ).flatten()]
+            info['high'] = [(x.item() if x != +np.inf else +1e100) for x in np.array(space.high).flatten()]
         elif info['name'] == 'HighLow':
             info['num_rows'] = space.num_rows
             info['matrix'] = [((float(x) if x != -np.inf else -1e100) if x != +np.inf else +1e100) for x in np.array(space.matrix).flatten()]
@@ -255,6 +255,7 @@ def env_step(instance_id):
     json = request.get_json()
     action = get_required_param(json, 'action')
     render = get_optional_param(json, 'render', False)
+    print("---------dddddd------------------",type(action),action)
     [obs_jsonable, reward, done, info] = envs.step(instance_id, action, render)
     return jsonify(observation = obs_jsonable,
                     reward = reward, done = done, info = info)
@@ -274,6 +275,7 @@ def env_action_space_info(instance_id):
     space to space
     """
     info = envs.get_action_space_info(instance_id)
+    #print("--------------",type(info),info)
     return jsonify(info = info)
 
 @app.route('/v1/envs/<instance_id>/action_space/sample', methods=['GET'])
